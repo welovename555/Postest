@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TexasPOS — รุ่น 3 ไฟล์</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">TP</div>
+      <div>
+        <h1>TexasPOS</h1>
+        <small id="statusText">พร้อมใช้งาน</small>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="newSaleBtn" class="btn ghost" title="ล้างบิล (N)">เริ่มบิลใหม่</button>
+      <button id="themeBtn" class="btn ghost" title="สลับธีม">ธีม</button>
+      <button id="settingsBtn" class="btn ghost" title="ตั้งค่า">ตั้งค่า</button>
+      <button id="payBtn" class="btn primary" title="ชำระเงิน (P)">ชำระเงิน</button>
+    </div>
+  </header>
+
+  <main class="app-body">
+    <section class="left">
+      <div class="searchbar">
+        <input id="searchInput" type="search" placeholder="ค้นหาสินค้า หรือสแกนบาร์โค้ด… (กด / เพื่อค้นหา)" autocomplete="off" aria-label="ค้นหาสินค้า">
+        <div class="filters">
+          <select id="categorySelect" aria-label="เลือกหมวดหมู่">
+            <option value="">ทุกหมวดหมู่</option>
+          </select>
+          <select id="sortSelect" aria-label="เรียงลำดับ">
+            <option value="name">ชื่อ (A–Z)</option>
+            <option value="price">ราคา (ต่ำ→สูง)</option>
+            <option value="popular">ขายดี</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="productGrid" class="product-grid" role="list" aria-label="รายการสินค้า"></div>
+    </section>
+
+    <section class="right">
+      <div class="panel cart">
+        <div class="panel-header">
+          <h2>ตะกร้าสินค้า</h2>
+          <div class="meta">
+            <span id="billId">บิล #: —</span>
+            <span id="nowTime">—</span>
+          </div>
+        </div>
+
+        <div class="cart-table-wrap">
+          <table class="cart-table">
+            <thead>
+              <tr>
+                <th style="width:44%">สินค้า</th>
+                <th style="width:16%;text-align:right">ราคา</th>
+                <th style="width:24%;text-align:center">จำนวน</th>
+                <th style="width:16%;text-align:right">รวม</th>
+                <th style="width:8%"></th>
+              </tr>
+            </thead>
+            <tbody id="cartBody"></tbody>
+          </table>
+        </div>
+
+        <div class="summary">
+          <div class="row">
+            <label>ส่วนลด (%)</label>
+            <input id="discountPercent" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="0">
+            <label>ส่วนลด (฿)</label>
+            <input id="discountFixed" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00">
+          </div>
+          <div class="row">
+            <label>ภาษี (%)</label>
+            <input id="taxPercent" type="number" min="0" max="99" step="0.01" inputmode="decimal" placeholder="0">
+            <label>ลูกค้า</label>
+            <input id="customerName" type="text" placeholder="ใส่ชื่อลูกค้า (ถ้ามี)">
+          </div>
+
+          <div class="totals">
+            <div><span>ยอดก่อนส่วนลด</span><strong id="subTotalText">฿0.00</strong></div>
+            <div><span>ส่วนลด</span><strong id="discountText">−฿0.00</strong></div>
+            <div><span>ภาษี</span><strong id="taxText">฿0.00</strong></div>
+            <div class="grand"><span>ยอดสุทธิ</span><strong id="grandTotalText">฿0.00</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel shortcuts">
+        <h3>ปุ่มลัด</h3>
+        <ul>
+          <li><kbd>/</kbd> โฟกัสค้นหา</li>
+          <li><kbd>N</kbd> เริ่มบิลใหม่</li>
+          <li><kbd>P</kbd> ชำระเงิน</li>
+          <li><kbd>Del</kbd> ลบรายการที่เลือก</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: Settings -->
+  <dialog id="settingsDialog">
+    <form method="dialog" class="dialog">
+      <header>
+        <h3>ตั้งค่า</h3>
+      </header>
+      <div class="dialog-body">
+        <div class="grid2">
+          <label>ชื่อร้าน
+            <input id="storeNameInput" type="text" placeholder="TexasPOS">
+          </label>
+          <label>สกุลเงิน (ISO)
+            <input id="currencyInput" type="text" placeholder="THB" maxlength="3">
+          </label>
+          <label>อัตราภาษีเริ่มต้น (%)
+            <input id="defaultTaxInput" type="number" min="0" max="99" step="0.01" placeholder="7">
+          </label>
+          <label>หมายเหตุท้ายบิล
+            <input id="receiptNoteInput" type="text" placeholder="ขอบคุณที่อุดหนุน">
+          </label>
+        </div>
+      </div>
+      <footer>
+        <button class="btn ghost" value="cancel">ยกเลิก</button>
+        <button class="btn primary" id="saveSettingsBtn" value="default">บันทึก</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Modal: Payment -->
+  <dialog id="payDialog">
+    <form method="dialog" class="dialog">
+      <header>
+        <h3>ชำระเงิน</h3>
+      </header>
+      <div class="dialog-body">
+        <div class="pay-amounts">
+          <div><span>ยอดสุทธิ</span><strong id="payGrand">฿0.00</strong></div>
+          <label>ลูกค้าจ่าย (฿)
+            <input id="payGiven" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00">
+          </label>
+          <div><span>เงินทอน</span><strong id="payChange">฿0.00</strong></div>
+        </div>
+        <div class="pay-methods">
+          <button type="button" class="btn" data-method="cash">เงินสด</button>
+          <button type="button" class="btn" data-method="card">บัตร</button>
+          <button type="button" class="btn" data-method="transfer">โอน</button>
+          <button type="button" class="btn" data-method="other">อื่นๆ</button>
+        </div>
+      </div>
+      <footer>
+        <button class="btn ghost" value="cancel">ยกเลิก</button>
+        <button class="btn primary" id="completePayBtn" value="default">พิมพ์ใบเสร็จ</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Receipt (print-only) -->
+  <section id="receipt" aria-hidden="true">
+    <div class="receipt">
+      <h2 id="rStore">TexasPOS</h2>
+      <div class="r-meta">
+        <div id="rBillId">บิล #: —</div>
+        <div id="rDate">—</div>
+        <div id="rCustomer">ลูกค้า: —</div>
+      </div>
+      <table class="r-items">
+        <thead>
+          <tr><th>สินค้า</th><th>จำนวน</th><th>ราคา</th></tr>
+        </thead>
+        <tbody id="rBody"></tbody>
+      </table>
+      <div class="r-totals">
+        <div><span>ยอดก่อนส่วนลด</span><strong id="rSub">฿0.00</strong></div>
+        <div><span>ส่วนลด</span><strong id="rDisc">−฿0.00</strong></div>
+        <div><span>ภาษี</span><strong id="rTax">฿0.00</strong></div>
+        <div class="grand"><span>ยอดสุทธิ</span><strong id="rGrand">฿0.00</strong></div>
+      </div>
+      <p id="rNote" class="r-note">ขอบคุณที่อุดหนุน</p>
+    </div>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
